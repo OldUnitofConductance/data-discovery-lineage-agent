@@ -1,6 +1,6 @@
 # Data Lineage & Discovery Agent
 
-An AI agent that infers what tables and columns mean, discovers relationships between them with no foreign keys declared, and answers "which tables do I need and how do I join them?" — all with confidence scores and a human-in-the-loop review layer.
+An AI agent that infers what tables and columns mean, discovers relationships between them with no foreign keys declared, and answers "which tables do I need and how do I join them?" - all with confidence scores and a human-in-the-loop review layer.
 
 ## The problem
 
@@ -21,17 +21,12 @@ Given raw schema metadata + sample data (the same information exposed by `inform
 A human can review and correct inferences, and corrections are tracked separately from the AI's original guess — preserving the signal of where the agent was wrong.
 
 ## Architecture
-Olist CSVs ──▶ Schema Inference Agent ──▶ Lineage Catalogue ◀──▶ Catalogue UI (review)
-│
-▼
-Relationship Inference
-(graph builder)
-│
-▼
-Discovery Agent ──▶ Discovery UI
-│
-▼
-Eval Scorer ◀── Golden Set + Ground Truth
+
+<img width="1472" height="1080" alt="image" src="https://github.com/user-attachments/assets/7c4ac555-c6b9-47db-9215-dd5cd98a1828" />
+<img width="1472" height="720" alt="image" src="https://github.com/user-attachments/assets/2020f48a-411d-41ef-87f2-e4f155d14129" />
+
+
+
 The **lineage catalogue** is the single source of truth — every component reads from and writes to it.
 
 ## Status
