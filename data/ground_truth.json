@@ -1,0 +1,79 @@
+{
+  "_description": "Olist FK ground truth. The agent is never given this — it infers relationships independently. Used only in eval scoring.",
+  "tables": {
+    "olist_orders_dataset": "One row per order. Central fact table.",
+    "olist_order_items_dataset": "Line items within an order (product + seller + price + freight).",
+    "olist_customers_dataset": "Customer identity and location.",
+    "olist_products_dataset": "Product attributes (category, dimensions, photos).",
+    "olist_sellers_dataset": "Seller identity and location.",
+    "olist_order_payments_dataset": "Payment method and installments per order.",
+    "olist_order_reviews_dataset": "Customer review scores and comments per order.",
+    "olist_geolocation_dataset": "Zip code to lat/lng mapping.",
+    "product_category_name_translation": "Portuguese category names → English."
+  },
+  "relationships": [
+    {
+      "from_table": "olist_orders_dataset",
+      "from_column": "customer_id",
+      "to_table": "olist_customers_dataset",
+      "to_column": "customer_id",
+      "cardinality": "many-to-one"
+    },
+    {
+      "from_table": "olist_order_items_dataset",
+      "from_column": "order_id",
+      "to_table": "olist_orders_dataset",
+      "to_column": "order_id",
+      "cardinality": "many-to-one"
+    },
+    {
+      "from_table": "olist_order_items_dataset",
+      "from_column": "product_id",
+      "to_table": "olist_products_dataset",
+      "to_column": "product_id",
+      "cardinality": "many-to-one"
+    },
+    {
+      "from_table": "olist_order_items_dataset",
+      "from_column": "seller_id",
+      "to_table": "olist_sellers_dataset",
+      "to_column": "seller_id",
+      "cardinality": "many-to-one"
+    },
+    {
+      "from_table": "olist_order_payments_dataset",
+      "from_column": "order_id",
+      "to_table": "olist_orders_dataset",
+      "to_column": "order_id",
+      "cardinality": "many-to-one"
+    },
+    {
+      "from_table": "olist_order_reviews_dataset",
+      "from_column": "order_id",
+      "to_table": "olist_orders_dataset",
+      "to_column": "order_id",
+      "cardinality": "many-to-one"
+    },
+    {
+      "from_table": "olist_products_dataset",
+      "from_column": "product_category_name",
+      "to_table": "product_category_name_translation",
+      "to_column": "product_category_name",
+      "cardinality": "many-to-one"
+    },
+    {
+      "from_table": "olist_customers_dataset",
+      "from_column": "customer_zip_code_prefix",
+      "to_table": "olist_geolocation_dataset",
+      "to_column": "geolocation_zip_code_prefix",
+      "cardinality": "many-to-many"
+    },
+    {
+      "from_table": "olist_sellers_dataset",
+      "from_column": "seller_zip_code_prefix",
+      "to_table": "olist_geolocation_dataset",
+      "to_column": "geolocation_zip_code_prefix",
+      "cardinality": "many-to-many"
+    }
+  ]
+}

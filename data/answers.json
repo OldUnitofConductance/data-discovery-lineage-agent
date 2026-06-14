@@ -1,0 +1,137 @@
+[
+  {
+    "question_id": "Q1",
+    "question": "Which table tells me who placed a given order?",
+    "tables": [
+      "olist_orders_dataset",
+      "olist_customers_dataset"
+    ],
+    "join_path": [
+      {
+        "from_table": "olist_orders_dataset",
+        "from_column": "customer_id",
+        "to_table": "olist_customers_dataset"
+      }
+    ],
+    "explanation": "Start from `olist_orders_dataset` (which holds each order and its `customer_id`), then join to `olist_customers_dataset` on `customer_id` to retrieve the profile of the customer who placed that order."
+  },
+  {
+    "question_id": "Q2",
+    "question": "I want to find the product category in English and seller city for every order item. Which tables do I need and how do I join them?",
+    "tables": [
+      "olist_order_items_dataset",
+      "olist_products_dataset",
+      "product_category_name_translation",
+      "olist_sellers_dataset"
+    ],
+    "join_path": [
+      {
+        "from_table": "olist_order_items_dataset",
+        "from_column": "product_id",
+        "to_table": "olist_products_dataset"
+      },
+      {
+        "from_table": "olist_products_dataset",
+        "from_column": "product_category_name",
+        "to_table": "product_category_name_translation"
+      },
+      {
+        "from_table": "olist_order_items_dataset",
+        "from_column": "seller_id",
+        "to_table": "olist_sellers_dataset"
+      }
+    ],
+    "explanation": "Start from olist_order_items_dataset as the hub; join to olist_products_dataset on product_id to retrieve the Portuguese category name, then join that to product_category_name_translation on product_category_name to get the English translation. In parallel, join olist_order_items_dataset to olist_sellers_dataset on seller_id to bring in the seller's city."
+  },
+  {
+    "question_id": "Q3",
+    "question": "How do I get the review score for each order, along with what the customer paid?",
+    "tables": [
+      "olist_orders_dataset",
+      "olist_order_reviews_dataset",
+      "olist_order_payments_dataset"
+    ],
+    "join_path": [
+      {
+        "from_table": "olist_orders_dataset",
+        "from_column": "order_id",
+        "to_table": "olist_order_reviews_dataset"
+      },
+      {
+        "from_table": "olist_orders_dataset",
+        "from_column": "order_id",
+        "to_table": "olist_order_payments_dataset"
+      }
+    ],
+    "explanation": "Start from olist_orders_dataset as the central hub and join olist_order_reviews_dataset on order_id to get the review score, then join olist_order_payments_dataset on order_id to get the payment value \u2014 both are satellite tables hanging off the orders hub via the same order_id key."
+  },
+  {
+    "question_id": "Q4",
+    "question": "Can I map a customer's delivery address to geographic coordinates?",
+    "tables": [
+      "olist_customers_dataset",
+      "olist_geolocation_dataset"
+    ],
+    "join_path": [
+      {
+        "from_table": "olist_customers_dataset",
+        "from_column": "customer_zip_code_prefix",
+        "to_table": "olist_geolocation_dataset",
+        "to_column": "geolocation_zip_code_prefix"
+      }
+    ],
+    "explanation": "Start from `olist_customers_dataset`, which holds each customer's zip code prefix, city, and state, then join to `olist_geolocation_dataset` on the zip code prefix to retrieve the corresponding latitude (`geolocation_lat`) and longitude (`geolocation_lng`) coordinates for their delivery address."
+  },
+  {
+    "question_id": "Q5",
+    "question": "I want a single query showing order date, customer city, product category (in English), seller state, review score, and payment type. What is the full join path?",
+    "tables": [
+      "olist_orders_dataset",
+      "olist_customers_dataset",
+      "olist_order_items_dataset",
+      "olist_products_dataset",
+      "product_category_name_translation",
+      "olist_sellers_dataset",
+      "olist_order_reviews_dataset",
+      "olist_order_payments_dataset"
+    ],
+    "join_path": [
+      {
+        "from_table": "olist_orders_dataset",
+        "from_column": "customer_id",
+        "to_table": "olist_customers_dataset"
+      },
+      {
+        "from_table": "olist_orders_dataset",
+        "from_column": "order_id",
+        "to_table": "olist_order_items_dataset"
+      },
+      {
+        "from_table": "olist_orders_dataset",
+        "from_column": "order_id",
+        "to_table": "olist_order_reviews_dataset"
+      },
+      {
+        "from_table": "olist_orders_dataset",
+        "from_column": "order_id",
+        "to_table": "olist_order_payments_dataset"
+      },
+      {
+        "from_table": "olist_order_items_dataset",
+        "from_column": "product_id",
+        "to_table": "olist_products_dataset"
+      },
+      {
+        "from_table": "olist_order_items_dataset",
+        "from_column": "seller_id",
+        "to_table": "olist_sellers_dataset"
+      },
+      {
+        "from_table": "olist_products_dataset",
+        "from_column": "product_category_name",
+        "to_table": "product_category_name_translation"
+      }
+    ],
+    "explanation": "Start from olist_orders_dataset as the central hub and fan out to four satellites \u2014 olist_customers_dataset (customer city), olist_order_items_dataset (line items), olist_order_reviews_dataset (review score), and olist_order_payments_dataset (payment type). From olist_order_items_dataset, join olist_products_dataset for the Portuguese category name and olist_sellers_dataset for the seller state; then join product_category_name_translation to convert the category name into English."
+  }
+]

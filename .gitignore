@@ -1,0 +1,16 @@
+# Secrets
+.env
+
+# Raw data — download from Kaggle: olist-brazilian-ecommerce
+data/*.csv
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Node
+node_modules/
+
+# OS
+.DS_Store

@@ -1,0 +1,130 @@
+{
+  "_description": "5 discovery questions with known-correct answers derived from Olist FK ground truth. Agent answers are scored against these at eval time.",
+  "scoring_rubric": {
+    "_applies_to": "Q1–Q5 uniformly",
+    "table_set": {
+      "metric": "precision and recall",
+      "definition": "Compare the set of tables the agent identified as required against tables_required. Precision = |agent ∩ expected| / |agent|. Recall = |agent ∩ expected| / |expected|. Order does not matter.",
+      "pass_threshold": "precision ≥0.80 AND recall ≥0.70"
+    },
+    "join_path": {
+      "metric": "edge-level precision and recall",
+      "definition": "Each expected join is a directed edge (from_table, join_column, to_table). An agent edge matches if from_table, the join column(s), and to_table all match. Precision = matched_agent_edges / total_agent_edges. Recall = matched_agent_edges / total_expected_edges.",
+      "pass_threshold": "precision ≥0.80 AND recall ≥0.70",
+      "notes": "For Q4, where from_column ≠ to_column, both column names must match for the edge to count as correct."
+    }
+  },
+  "questions": [
+    {
+      "id": "Q1",
+      "question": "Which table tells me who placed a given order?",
+      "category": "single_hop_discovery",
+      "tables_required": ["olist_orders_dataset", "olist_customers_dataset"],
+      "join_path": [
+        {
+          "from_table": "olist_orders_dataset",
+          "from_column": "customer_id",
+          "to_table": "olist_customers_dataset"
+        }
+      ],
+      "expected_answer_summary": "Join olist_orders_dataset to olist_customers_dataset on customer_id to get the customer who placed an order.",
+      "eval_notes": "Simplest possible single-hop. Tests whether agent finds the most direct FK."
+    },
+    {
+      "id": "Q2",
+      "question": "I want to find the product category in English and seller city for every order item. Which tables do I need and how do I join them?",
+      "category": "multi_hop_discovery",
+      "tables_required": [
+        "olist_order_items_dataset",
+        "olist_products_dataset",
+        "product_category_name_translation",
+        "olist_sellers_dataset"
+      ],
+      "join_path": [
+        {
+          "from_table": "olist_order_items_dataset",
+          "from_column": "product_id",
+          "to_table": "olist_products_dataset"
+        },
+        {
+          "from_table": "olist_products_dataset",
+          "from_column": "product_category_name",
+          "to_table": "product_category_name_translation"
+        },
+        {
+          "from_table": "olist_order_items_dataset",
+          "from_column": "seller_id",
+          "to_table": "olist_sellers_dataset"
+        }
+      ],
+      "expected_answer_summary": "Start from olist_order_items_dataset. Join to olist_products_dataset on product_id for category (in Portuguese), then join to product_category_name_translation on product_category_name for English category. Separately join to olist_sellers_dataset on seller_id for seller city.",
+      "eval_notes": "Tests multi-hop and a non-obvious bridge table (the translation table)."
+    },
+    {
+      "id": "Q3",
+      "question": "How do I get the review score for each order, along with what the customer paid?",
+      "category": "parallel_join_discovery",
+      "tables_required": [
+        "olist_orders_dataset",
+        "olist_order_reviews_dataset",
+        "olist_order_payments_dataset"
+      ],
+      "join_path": [
+        {
+          "from_table": "olist_orders_dataset",
+          "from_column": "order_id",
+          "to_table": "olist_order_reviews_dataset"
+        },
+        {
+          "from_table": "olist_orders_dataset",
+          "from_column": "order_id",
+          "to_table": "olist_order_payments_dataset"
+        }
+      ],
+      "expected_answer_summary": "Start from olist_orders_dataset and join both olist_order_reviews_dataset and olist_order_payments_dataset on order_id. These are two parallel one-to-many joins from the central orders table.",
+      "eval_notes": "Tests detection of two parallel fact satellites hanging off the same FK."
+    },
+    {
+      "id": "Q4",
+      "question": "Can I map a customer's delivery address to geographic coordinates?",
+      "category": "geospatial_join_discovery",
+      "tables_required": ["olist_customers_dataset", "olist_geolocation_dataset"],
+      "join_path": [
+        {
+          "from_table": "olist_customers_dataset",
+          "from_column": "customer_zip_code_prefix",
+          "to_table": "olist_geolocation_dataset",
+          "to_column": "geolocation_zip_code_prefix"
+        }
+      ],
+      "expected_answer_summary": "Join olist_customers_dataset to olist_geolocation_dataset on customer_zip_code_prefix = geolocation_zip_code_prefix. Note: this is a many-to-many relationship since each zip prefix maps to multiple lat/lng coordinates.",
+      "eval_notes": "Tests detection of a cross-column-name join (column names differ) and a many-to-many cardinality."
+    },
+    {
+      "id": "Q5",
+      "question": "I want a single query showing order date, customer city, product category (in English), seller state, review score, and payment type. What is the full join path?",
+      "category": "full_star_schema_discovery",
+      "tables_required": [
+        "olist_orders_dataset",
+        "olist_customers_dataset",
+        "olist_order_items_dataset",
+        "olist_products_dataset",
+        "product_category_name_translation",
+        "olist_sellers_dataset",
+        "olist_order_reviews_dataset",
+        "olist_order_payments_dataset"
+      ],
+      "join_path": [
+        {"from_table": "olist_orders_dataset", "from_column": "customer_id", "to_table": "olist_customers_dataset"},
+        {"from_table": "olist_orders_dataset", "from_column": "order_id", "to_table": "olist_order_items_dataset"},
+        {"from_table": "olist_order_items_dataset", "from_column": "product_id", "to_table": "olist_products_dataset"},
+        {"from_table": "olist_products_dataset", "from_column": "product_category_name", "to_table": "product_category_name_translation"},
+        {"from_table": "olist_order_items_dataset", "from_column": "seller_id", "to_table": "olist_sellers_dataset"},
+        {"from_table": "olist_orders_dataset", "from_column": "order_id", "to_table": "olist_order_reviews_dataset"},
+        {"from_table": "olist_orders_dataset", "from_column": "order_id", "to_table": "olist_order_payments_dataset"}
+      ],
+      "expected_answer_summary": "olist_orders is the hub. Fan out to: olist_customers (customer_id), olist_order_items (order_id), olist_order_reviews (order_id), olist_order_payments (order_id). From order_items fan out to olist_products (product_id) → product_category_name_translation (category name), and olist_sellers (seller_id).",
+      "eval_notes": "The hardest test — requires traversing all 8 tables via the full star schema. High edge count means partial credit is expected; scoring follows the same rubric as Q1–Q4."
+    }
+  ]
+}
